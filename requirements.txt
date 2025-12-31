@@ -1,2 +1,23 @@
-pyodbc==5.0.1 
-tk==0.1.0 
+# Core Dependencies
+pyodbc==5.0.1          # Database connectivity
+python-dotenv==1.0.0   # Environment management
+pillow==10.2.0         # Image processing
+numpy==1.26.4        # Downgraded for compatibility
+matplotlib==3.8.2    # Chart generation
+pandas==2.1.4         # Data manipulation # Downgraded for compatibility
+
+# Development Dependencies (Optional)
+pytest==7.4.3          # Testing framework
+pytest-cov==4.1.0      # Test coverage
+black==24.3.0          # Code formatting (updated version)
+flake8==6.0.0          # Code linting
+mypy==1.5.1           # Type checking
+
+# Optional Dependencies
+openpyxl==3.1.2       # Excel export/import
+reportlab==4.0.4      # PDF generation
+pywin32==306          # Windows integration
+
+# Note: tkinter comes with Python installation
+# On Windows, it's included by default
+# On Linux/macOS: sudo apt-get install python3-tk

@@ -1,0 +1,144 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        python-version: [3.8, 3.9, "3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Lint with flake8
+        run: |
+          # stop the build if there are Python syntax errors or undefined names
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          # exit-zero treats all errors as warnings
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+
+      - name: Type check with mypy
+        run: |
+          mypy src --ignore-missing-imports
+
+      - name: Test with pytest
+        run: |
+          pytest tests/ -v --cov=src --cov-report=xml --cov-report=html
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report-${{ matrix.python-version }}
+          path: htmlcov/
+
+  build-check:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Check if application can start
+        run: |
+          python -c "
+          import sys
+          sys.path.insert(0, 'src')
+          try:
+              from src.database.config import config
+              print('✅ Configuration loaded successfully')
+              print(f'App Title: {config.app_config.title}')
+              print(f'Version: {config.app_config.version}')
+              print(f'Demo Mode: {config.app_config.demo_mode}')
+          except Exception as e:
+              print(f'❌ Error: {e}')
+              sys.exit(1)
+          "
+
+      - name: Validate requirements
+        run: |
+          python -c "
+          import pkg_resources
+          with open('requirements.txt') as f:
+              requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
+
+          for req in requirements:
+              try:
+                  pkg_resources.require(req)
+                  print(f'✅ {req}')
+              except pkg_resources.DistributionNotFound:
+                  print(f'❌ {req} - NOT INSTALLED')
+              except Exception as e:
+                  print(f'⚠️ {req} - {e}')
+          "
+
+  deploy-demo:
+    runs-on: windows-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create deployment package
+        run: |
+          # Create deployment directory
+          mkdir deploy
+
+          # Copy necessary files
+          copy LAUNCHER.bat deploy/
+          copy run.py deploy/
+          copy requirements.txt deploy/
+          copy .env deploy/
+
+          # Copy src directory
+          xcopy /E /I src deploy\src
+
+          # Copy database scripts
+          xcopy /E /I database deploy\database
+
+          # Copy documentation
+          mkdir deploy\docs
+          copy docs\SCD_REPORT.md deploy\docs\
+          copy docs\DBS_REPORT.md deploy\docs\
+
+          # Create README
+          echo "# Velocity Nexus Prime" > deploy\README.md
+          echo "## Deployment Package" >> deploy\README.md
+          echo "Generated: $(Get-Date -Format 'yyyy-MM-dd')" >> deploy\README.md
+
+          # Create zip file
+          Compress-Archive -Path deploy\* -DestinationPath VelocityNexusPrime_Deploy.zip
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-package
+          path: VelocityNexusPrime_Deploy.zip
