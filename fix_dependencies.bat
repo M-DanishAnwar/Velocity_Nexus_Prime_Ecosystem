@@ -11,7 +11,7 @@ echo.
 echo Step 1: Removing old virtual environment...
 if exist "venv" (
     rmdir /s /q "venv"
-    echo ✅ Old venv removed
+    echo  Old venv removed
 )
 
 :: Step 2: Create new venv
@@ -19,11 +19,11 @@ echo.
 echo Step 2: Creating fresh virtual environment...
 python -m venv venv
 if %ERRORLEVEL% NEQ 0 (
-    echo ❌ Failed to create venv
+    echo  Failed to create venv
     pause
     exit /b 1
 )
-echo ✅ New venv created
+echo  New venv created
 
 :: Step 3: Activate and upgrade pip
 echo.
@@ -55,32 +55,32 @@ echo Step 5: Testing imports...
 python -c "
 try:
     import numpy
-    print('✅ numpy', numpy.__version__)
+    print(' numpy', numpy.__version__)
 except Exception as e:
-    print('❌ numpy failed:', e)
+    print(' numpy failed:', e)
 
 try:
     import matplotlib
-    print('✅ matplotlib', matplotlib.__version__)
+    print(' matplotlib', matplotlib.__version__)
 except Exception as e:
-    print('❌ matplotlib failed:', e)
+    print(' matplotlib failed:', e)
 
 try:
     import pandas
-    print('✅ pandas', pandas.__version__)
+    print(' pandas', pandas.__version__)
 except Exception as e:
-    print('❌ pandas failed:', e)
+    print(' pandas failed:', e)
 
 try:
     import pyodbc
-    print('✅ pyodbc', pyodbc.version)
+    print(' pyodbc', pyodbc.version)
 except Exception as e:
-    print('❌ pyodbc failed:', e)
+    print(' pyodbc failed:', e)
 "
 
 echo.
 echo ============================================
-echo ✅ NUCLEAR FIX COMPLETED!
+echo  NUCLEAR FIX COMPLETED!
 echo ============================================
 echo.
 echo Now run the application with:
